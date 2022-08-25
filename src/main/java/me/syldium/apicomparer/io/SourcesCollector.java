@@ -1,6 +1,7 @@
 package me.syldium.apicomparer.io;
 
 import me.syldium.apicomparer.model.SourcesContent;
+import me.syldium.apicomparer.model.type.TypeAdapter;
 import me.syldium.apicomparer.model.type.TypeDeclaration;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -60,19 +61,17 @@ public class SourcesCollector {
         public boolean visit(RecordDeclaration node) {
             SourcesCollector.this.sources.register(new TypeDeclaration(
                     node.getName().getFullyQualifiedName(),
-                    Arrays.stream(node.getFields()).map(field -> ((VariableDeclarationFragment) field.fragments().get(0)).getName().getIdentifier()).toList(),
-                    Arrays.stream(node.getMethods()).map(method -> method.getName().getIdentifier()).toList()
+                    Arrays.stream(node.getFields())
+                            .map(field -> ((VariableDeclarationFragment) field.fragments().get(0)).getName().getIdentifier())
+                            .toList(),
+                    Arrays.stream(node.getMethods()).map(TypeAdapter::methodSignature).toList()
             ));
             return true;
         }
 
         @Override
         public boolean visit(org.eclipse.jdt.core.dom.TypeDeclaration node) {
-            SourcesCollector.this.sources.register(new TypeDeclaration(
-                    node.getName().getFullyQualifiedName(),
-                    Arrays.stream(node.getFields()).map(field -> ((VariableDeclarationFragment) field.fragments().get(0)).getName().getIdentifier()).toList(),
-                    Arrays.stream(node.getMethods()).map(method -> method.getName().getIdentifier()).toList()
-            ));
+            SourcesCollector.this.sources.register(TypeAdapter.typeDeclaration(node));
             return true;
         }
     }
