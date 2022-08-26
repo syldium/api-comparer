@@ -4,5 +4,5 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record MethodSignature(int modifiers, @NotNull String name, @NotNull List<String> parameters) {
+public record MethodSignature(int modifiers, @NotNull String name, @NotNull List<MethodParameter> parameters) {
 }

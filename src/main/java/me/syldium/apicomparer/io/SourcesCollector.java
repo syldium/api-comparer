@@ -12,7 +12,6 @@ import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.RecordDeclaration;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -49,9 +48,12 @@ public class SourcesCollector {
         @Override
         @SuppressWarnings("unchecked")
         public boolean visit(EnumDeclaration node) {
-            SourcesCollector.this.sources.register(new TypeDeclaration(
+            SourcesCollector.this.sources.register(new TypeDeclaration.Enum(
+                    node.getModifiers(),
                     node.getName().getFullyQualifiedName(),
-                    ((List<EnumConstantDeclaration>) node.enumConstants()).stream().map(field -> field.getName().getIdentifier()).toList(),
+                    ((List<EnumConstantDeclaration>) node.enumConstants()).stream()
+                            .map(field -> field.getName().getIdentifier())
+                            .toList(),
                     Collections.emptyList()
             ));
             return true;
@@ -59,10 +61,11 @@ public class SourcesCollector {
 
         @Override
         public boolean visit(RecordDeclaration node) {
-            SourcesCollector.this.sources.register(new TypeDeclaration(
+            SourcesCollector.this.sources.register(new TypeDeclaration.ClassOrInterface(
+                    node.getModifiers(),
                     node.getName().getFullyQualifiedName(),
                     Arrays.stream(node.getFields())
-                            .map(field -> ((VariableDeclarationFragment) field.fragments().get(0)).getName().getIdentifier())
+                            .map(TypeAdapter::methodParameter)
                             .toList(),
                     Arrays.stream(node.getMethods()).map(TypeAdapter::methodSignature).toList()
             ));
