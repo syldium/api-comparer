@@ -33,8 +33,10 @@ public final class TypeAdapter {
     }
 
     public static @NotNull MethodSignature methodSignature(@NotNull MethodDeclaration method) {
+        final Type returnType = method.getReturnType2();
         return new MethodSignature(
                 method.getModifiers(),
+                returnType == null ? null : javaType(returnType),
                 method.getName().getIdentifier(),
                 methodParameters(method.parameters())
         );
@@ -57,7 +59,7 @@ public final class TypeAdapter {
             case ArrayType array -> new JavaType.Array(javaType(array.getElementType()), array.getDimensions());
             case NameQualifiedType nameQualified -> new JavaType.Simple(nameQualified.getName().getFullyQualifiedName());
             case PrimitiveType primitive -> primitiveType(primitive.getPrimitiveTypeCode());
-            case ParameterizedType parameterized -> new JavaType.Parameterized(javaType(parameterized.getType()), parameterized.typeArguments()); // TODO type arguments
+            case ParameterizedType parameterized -> new JavaType.Parameterized(javaType(parameterized.getType()), ((List<Type>) parameterized.typeArguments()).stream().map(TypeAdapter::javaType).toList());
             case SimpleType simple -> new JavaType.Simple(simple.getName().getFullyQualifiedName());
             default -> throw new IllegalArgumentException(type.getClass().getSimpleName() + " for " + type);
         };
@@ -80,6 +82,8 @@ public final class TypeAdapter {
             return JavaType.Primitive.BOOLEAN;
         } else if (primitive == PrimitiveType.CHAR) {
             return JavaType.Primitive.CHAR;
+        } else if (primitive == PrimitiveType.VOID) {
+            return JavaType.Primitive.VOID;
         }
         throw new IllegalArgumentException(primitive.toString());
     }

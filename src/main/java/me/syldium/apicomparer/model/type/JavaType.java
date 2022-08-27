@@ -23,6 +23,7 @@ public sealed interface JavaType permits JavaType.Array, JavaType.Simple, JavaTy
         FLOAT,
         DOUBLE,
         BOOLEAN,
-        CHAR
+        CHAR,
+        VOID
     }
 }

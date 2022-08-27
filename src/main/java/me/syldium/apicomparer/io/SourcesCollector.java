@@ -7,16 +7,18 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.RecordDeclaration;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -48,13 +50,21 @@ public class SourcesCollector {
         @Override
         @SuppressWarnings("unchecked")
         public boolean visit(EnumDeclaration node) {
+            final List<BodyDeclaration> bodyDeclarations = node.bodyDeclarations();
             SourcesCollector.this.sources.register(new TypeDeclaration.Enum(
                     node.getModifiers(),
                     node.getName().getFullyQualifiedName(),
                     ((List<EnumConstantDeclaration>) node.enumConstants()).stream()
                             .map(field -> field.getName().getIdentifier())
                             .toList(),
-                    Collections.emptyList()
+                    bodyDeclarations.stream()
+                            .filter((declaration) -> declaration instanceof FieldDeclaration)
+                            .map((field) -> TypeAdapter.methodParameter((FieldDeclaration) field))
+                            .toList(),
+                    bodyDeclarations.stream()
+                            .filter((declaration) -> declaration instanceof MethodDeclaration)
+                            .map((method) -> TypeAdapter.methodSignature((MethodDeclaration) method))
+                            .toList()
             ));
             return true;
         }

@@ -13,9 +13,14 @@ public sealed interface TypeDeclaration permits TypeDeclaration.ClassOrInterface
 
     @NotNull String name();
 
-    record ClassOrInterface(int modifiers, @NotNull String name, @NotNull List<MethodParameter> fields, @NotNull List<MethodSignature> methods) implements TypeDeclaration {
+    record ClassOrInterface(int modifiers, @NotNull String name,
+                            @NotNull List<MethodParameter> fields,
+                            @NotNull List<MethodSignature> methods) implements TypeDeclaration {
     }
 
-    record Enum(int modifiers, @NotNull String name, @NotNull List<String> constants, @NotNull List<MethodSignature> methods) implements TypeDeclaration {
+    record Enum(int modifiers, @NotNull String name,
+                @NotNull List<String> constants,
+                @NotNull List<MethodParameter> fields,
+                @NotNull List<MethodSignature> methods) implements TypeDeclaration {
     }
 }
