@@ -143,7 +143,10 @@ public final class ParserTest {
                         "RecordExample",
                         null,
                         List.of(),
-                        List.of(),
+                        List.of(
+                                new MethodParameter(JavaType.Primitive.INT, "min"),
+                                new MethodParameter(JavaType.Primitive.INT, "max")
+                        ),
                         List.of(constructor, diff)
                 ),
                 content.find("RecordExample")

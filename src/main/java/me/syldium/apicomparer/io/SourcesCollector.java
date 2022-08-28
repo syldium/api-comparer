@@ -76,9 +76,7 @@ public class SourcesCollector {
                     node.getName().getFullyQualifiedName(),
                     null,
                     TypeAdapter.javaTypes(node.superInterfaceTypes()),
-                    Arrays.stream(node.getFields())
-                            .map(TypeAdapter::methodParameter)
-                            .toList(),
+                    TypeAdapter.methodParameters(node.recordComponents()),
                     Arrays.stream(node.getMethods()).map(TypeAdapter::methodSignature).toList()
             ));
             return true;
