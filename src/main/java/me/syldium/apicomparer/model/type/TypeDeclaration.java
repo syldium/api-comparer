@@ -1,6 +1,7 @@
 package me.syldium.apicomparer.model.type;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -14,6 +15,8 @@ public sealed interface TypeDeclaration permits TypeDeclaration.ClassOrInterface
     @NotNull String name();
 
     record ClassOrInterface(int modifiers, @NotNull String name,
+                            @Nullable JavaType superType,
+                            @NotNull List<JavaType> superInterfaces,
                             @NotNull List<MethodParameter> fields,
                             @NotNull List<MethodSignature> methods) implements TypeDeclaration {
     }

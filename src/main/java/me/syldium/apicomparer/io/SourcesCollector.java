@@ -74,6 +74,8 @@ public class SourcesCollector {
             SourcesCollector.this.sources.register(new TypeDeclaration.ClassOrInterface(
                     node.getModifiers(),
                     node.getName().getFullyQualifiedName(),
+                    null,
+                    TypeAdapter.javaTypes(node.superInterfaceTypes()),
                     Arrays.stream(node.getFields())
                             .map(TypeAdapter::methodParameter)
                             .toList(),

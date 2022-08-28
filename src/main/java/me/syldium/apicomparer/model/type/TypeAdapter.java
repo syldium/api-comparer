@@ -23,6 +23,8 @@ public final class TypeAdapter {
         return new TypeDeclaration.ClassOrInterface(
                 node.getModifiers(),
                 node.getName().getFullyQualifiedName(),
+                node.getSuperclassType() == null ? null : javaType(node.getSuperclassType()),
+                javaTypes(node.superInterfaceTypes()),
                 Arrays.stream(node.getFields())
                         .map(TypeAdapter::methodParameter)
                         .toList(),
@@ -63,6 +65,10 @@ public final class TypeAdapter {
             case SimpleType simple -> new JavaType.Simple(simple.getName().getFullyQualifiedName());
             default -> throw new IllegalArgumentException(type.getClass().getSimpleName() + " for " + type);
         };
+    }
+
+    public static @NotNull List<JavaType> javaTypes(@NotNull List<Type> types) {
+        return types.stream().map(TypeAdapter::javaType).toList();
     }
 
     public static @NotNull JavaType.Primitive primitiveType(@NotNull PrimitiveType.Code primitive) {

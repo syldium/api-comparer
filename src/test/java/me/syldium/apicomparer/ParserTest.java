@@ -45,6 +45,8 @@ public final class ParserTest {
                 new TypeDeclaration.ClassOrInterface(
                         Modifier.FINAL,
                         "HelloWorld",
+                        null,
+                        List.of(),
                         List.of(),
                         List.of(constructor, main)
                 ),
@@ -83,14 +85,16 @@ public final class ParserTest {
     @Test
     void genericWithInnerClassTest() throws IOException {
         final JavaType T = new JavaType.Simple("T");
+        final JavaType iterable = new JavaType.Parameterized(new JavaType.Simple("Iterable"), List.of(T));
         final JavaType node = new JavaType.Parameterized(new JavaType.Simple("Node"), List.of(T));
+
         final MethodParameter first = new MethodParameter(node, "first");
         final MethodSignature defaultConstructor = new MethodSignature(0, null, "GenericWithInnerExample", List.of());
         final MethodSignature constructor = new MethodSignature(
                 0,
                 null,
                 "GenericWithInnerExample",
-                List.of(new MethodParameter(new JavaType.Parameterized(new JavaType.Simple("Iterable"), List.of(T)), "iterable"))
+                List.of(new MethodParameter(iterable, "iterable"))
         );
         final MethodSignature push = new MethodSignature(
                 0,
@@ -109,6 +113,8 @@ public final class ParserTest {
                 new TypeDeclaration.ClassOrInterface(
                         0,
                         "GenericWithInnerExample",
+                        null,
+                        List.of(iterable),
                         List.of(first),
                         List.of(defaultConstructor, constructor, push, iterator)
                 ),
@@ -135,6 +141,8 @@ public final class ParserTest {
                 new TypeDeclaration.ClassOrInterface(
                         0,
                         "RecordExample",
+                        null,
+                        List.of(),
                         List.of(),
                         List.of(constructor, diff)
                 ),
