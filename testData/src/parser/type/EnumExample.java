@@ -4,7 +4,7 @@ enum EnumExample {
     PRESENT,
     ABSENT;
 
-    public static final int VALUES_LEN = 2;
+    static final int VALUES_LEN = 2;
 
     static EnumExample from(boolean value) {
         return value ? PRESENT : ABSENT;

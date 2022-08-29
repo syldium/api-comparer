@@ -2,8 +2,9 @@ package me.syldium.apicomparer;
 
 import me.syldium.apicomparer.io.SourcesCollector;
 import me.syldium.apicomparer.model.SourcesContent;
+import me.syldium.apicomparer.model.type.FieldDeclaration;
 import me.syldium.apicomparer.model.type.JavaType;
-import me.syldium.apicomparer.model.type.MethodParameter;
+import me.syldium.apicomparer.model.type.VariableDeclaration;
 import me.syldium.apicomparer.model.type.MethodSignature;
 import me.syldium.apicomparer.model.type.TypeDeclaration;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ public final class ParserTest {
                 Modifier.PUBLIC | Modifier.STATIC,
                 JavaType.Primitive.VOID,
                 "main",
-                List.of(new MethodParameter(new JavaType.Array(STRING_TYPE, 1), "args"))
+                List.of(new VariableDeclaration(new JavaType.Array(STRING_TYPE, 1), "args"))
         );
         final SourcesContent content = content(Path.of("parser/helloworld/HelloWorld.java"));
         assertEquals(
@@ -61,7 +62,7 @@ public final class ParserTest {
                 Modifier.STATIC,
                 enumExampleType,
                 "from",
-                List.of(new MethodParameter(JavaType.Primitive.BOOLEAN, "value"))
+                List.of(new VariableDeclaration(JavaType.Primitive.BOOLEAN, "value"))
         );
         final MethodSignature toString = new MethodSignature(
                 Modifier.PUBLIC,
@@ -75,7 +76,7 @@ public final class ParserTest {
                         0,
                         "EnumExample",
                         List.of("PRESENT", "ABSENT"),
-                        List.of(new MethodParameter(JavaType.Primitive.INT, "VALUES_LEN")),
+                        List.of(new FieldDeclaration(Modifier.STATIC | Modifier.FINAL, new VariableDeclaration(JavaType.Primitive.INT, "VALUES_LEN"))),
                         List.of(from, toString)
                 ),
                 content.find("EnumExample")
@@ -88,19 +89,19 @@ public final class ParserTest {
         final JavaType iterable = new JavaType.Parameterized(new JavaType.Simple("Iterable"), List.of(T));
         final JavaType node = new JavaType.Parameterized(new JavaType.Simple("Node"), List.of(T));
 
-        final MethodParameter first = new MethodParameter(node, "first");
+        final FieldDeclaration first = new FieldDeclaration(Modifier.PRIVATE, new VariableDeclaration(node, "first"));
         final MethodSignature defaultConstructor = new MethodSignature(0, null, "GenericWithInnerExample", List.of());
         final MethodSignature constructor = new MethodSignature(
                 0,
                 null,
                 "GenericWithInnerExample",
-                List.of(new MethodParameter(iterable, "iterable"))
+                List.of(new VariableDeclaration(iterable, "iterable"))
         );
         final MethodSignature push = new MethodSignature(
                 0,
                 JavaType.Primitive.VOID,
                 "push",
-                List.of(new MethodParameter(T, "element"))
+                List.of(new VariableDeclaration(T, "element"))
         );
         final MethodSignature iterator = new MethodSignature(
                 Modifier.PUBLIC,
@@ -130,6 +131,10 @@ public final class ParserTest {
                 "RecordExample",
                 List.of()
         );
+        final FieldDeclaration zero = new FieldDeclaration(
+                Modifier.STATIC | Modifier.FINAL,
+                new VariableDeclaration(new JavaType.Simple("RecordExample"), "ZERO")
+        );
         final MethodSignature diff = new MethodSignature(
                 0,
                 JavaType.Primitive.INT,
@@ -138,18 +143,56 @@ public final class ParserTest {
         );
         final SourcesContent content = content(Path.of("parser/type/RecordExample.java"));
         assertEquals(
-                new TypeDeclaration.ClassOrInterface(
+                new TypeDeclaration.Record(
                         0,
                         "RecordExample",
-                        null,
-                        List.of(),
                         List.of(
-                                new MethodParameter(JavaType.Primitive.INT, "min"),
-                                new MethodParameter(JavaType.Primitive.INT, "max")
+                                new VariableDeclaration(JavaType.Primitive.INT, "min"),
+                                new VariableDeclaration(JavaType.Primitive.INT, "max")
                         ),
+                        List.of(),
+                        List.of(zero),
                         List.of(constructor, diff)
                 ),
                 content.find("RecordExample")
+        );
+    }
+
+    @Test
+    void wildcardTest() throws IOException {
+        final JavaType T = new JavaType.Simple("T");
+        final SourcesContent content = content(Path.of("parser/type/WildcardExample.java"));
+        final MethodSignature apply = new MethodSignature(
+                Modifier.STATIC,
+                JavaType.Primitive.VOID,
+                "apply",
+                List.of(
+                        new VariableDeclaration(
+                                new JavaType.Parameterized(
+                                        new JavaType.Simple("Iterable"),
+                                        List.of(new JavaType.Wildcard(new JavaType.Wildcard.Bound(JavaType.Wildcard.Constraint.EXTENDS, T)))
+                                ),
+                                "input"
+                        ),
+                        new VariableDeclaration(
+                                new JavaType.Parameterized(
+                                        new JavaType.Simple("Consumer"),
+                                        List.of(new JavaType.Wildcard(new JavaType.Wildcard.Bound(JavaType.Wildcard.Constraint.SUPER, T)))
+                                ),
+                                "consumer"
+                        )
+                )
+        );
+        assertEquals(
+                new TypeDeclaration.ClassOrInterface(
+                        Modifier.FINAL,
+                        "WildcardExample",
+                        null,
+                        List.of(),
+                        List.of(),
+                        List.of(apply)
+                ),
+                content.find("WildcardExample")
         );
     }
 

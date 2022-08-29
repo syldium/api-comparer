@@ -2,24 +2,19 @@ package me.syldium.apicomparer.io;
 
 import me.syldium.apicomparer.model.SourcesContent;
 import me.syldium.apicomparer.model.type.TypeAdapter;
-import me.syldium.apicomparer.model.type.TypeDeclaration;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
-import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.RecordDeclaration;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 public class SourcesCollector {
@@ -48,43 +43,20 @@ public class SourcesCollector {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
+        public boolean visit(TypeDeclaration node) {
+            SourcesCollector.this.sources.register(TypeAdapter.classOrInterfaceType(node));
+            return true;
+        }
+
+        @Override
         public boolean visit(EnumDeclaration node) {
-            final List<BodyDeclaration> bodyDeclarations = node.bodyDeclarations();
-            SourcesCollector.this.sources.register(new TypeDeclaration.Enum(
-                    node.getModifiers(),
-                    node.getName().getFullyQualifiedName(),
-                    ((List<EnumConstantDeclaration>) node.enumConstants()).stream()
-                            .map(field -> field.getName().getIdentifier())
-                            .toList(),
-                    bodyDeclarations.stream()
-                            .filter((declaration) -> declaration instanceof FieldDeclaration)
-                            .map((field) -> TypeAdapter.methodParameter((FieldDeclaration) field))
-                            .toList(),
-                    bodyDeclarations.stream()
-                            .filter((declaration) -> declaration instanceof MethodDeclaration)
-                            .map((method) -> TypeAdapter.methodSignature((MethodDeclaration) method))
-                            .toList()
-            ));
+            SourcesCollector.this.sources.register(TypeAdapter.enumType(node));
             return true;
         }
 
         @Override
         public boolean visit(RecordDeclaration node) {
-            SourcesCollector.this.sources.register(new TypeDeclaration.ClassOrInterface(
-                    node.getModifiers(),
-                    node.getName().getFullyQualifiedName(),
-                    null,
-                    TypeAdapter.javaTypes(node.superInterfaceTypes()),
-                    TypeAdapter.methodParameters(node.recordComponents()),
-                    Arrays.stream(node.getMethods()).map(TypeAdapter::methodSignature).toList()
-            ));
-            return true;
-        }
-
-        @Override
-        public boolean visit(org.eclipse.jdt.core.dom.TypeDeclaration node) {
-            SourcesCollector.this.sources.register(TypeAdapter.typeDeclaration(node));
+            SourcesCollector.this.sources.register(TypeAdapter.recordType(node));
             return true;
         }
     }
