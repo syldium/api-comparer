@@ -4,6 +4,7 @@ import me.syldium.apicomparer.io.SourcesCollector;
 import me.syldium.apicomparer.model.SourcesContent;
 import me.syldium.apicomparer.model.type.FieldDeclaration;
 import me.syldium.apicomparer.model.type.JavaType;
+import me.syldium.apicomparer.model.type.TypeParameter;
 import me.syldium.apicomparer.model.type.VariableDeclaration;
 import me.syldium.apicomparer.model.type.MethodSignature;
 import me.syldium.apicomparer.model.type.TypeDeclaration;
@@ -46,8 +47,6 @@ public final class ParserTest {
                 new TypeDeclaration.ClassOrInterface(
                         Modifier.FINAL,
                         "HelloWorld",
-                        null,
-                        List.of(),
                         List.of(),
                         List.of(constructor, main)
                 ),
@@ -114,6 +113,7 @@ public final class ParserTest {
                 new TypeDeclaration.ClassOrInterface(
                         0,
                         "GenericWithInnerExample",
+                        List.of(new TypeParameter("T")),
                         null,
                         List.of(iterable),
                         List.of(first),
@@ -150,7 +150,6 @@ public final class ParserTest {
                                 new VariableDeclaration(JavaType.Primitive.INT, "min"),
                                 new VariableDeclaration(JavaType.Primitive.INT, "max")
                         ),
-                        List.of(),
                         List.of(zero),
                         List.of(constructor, diff)
                 ),
@@ -159,11 +158,33 @@ public final class ParserTest {
     }
 
     @Test
+    void throwTest() throws IOException {
+        final MethodSignature createFile = new MethodSignature(
+                0,
+                List.of(),
+                JavaType.Primitive.VOID,
+                "createFile",
+                List.of(),
+                List.of(new JavaType.Simple("IOException"))
+        );
+        final SourcesContent content = content(Path.of("parser/type/ThrowExample.java"));
+        assertEquals(
+                new TypeDeclaration.ClassOrInterface(
+                        Modifier.FINAL,
+                        "ThrowExample",
+                        List.of(),
+                        List.of(createFile)
+                ),
+                content.find("ThrowExample")
+        );
+    }
+
+    @Test
     void wildcardTest() throws IOException {
         final JavaType T = new JavaType.Simple("T");
-        final SourcesContent content = content(Path.of("parser/type/WildcardExample.java"));
         final MethodSignature apply = new MethodSignature(
                 Modifier.STATIC,
+                List.of(new TypeParameter("T")),
                 JavaType.Primitive.VOID,
                 "apply",
                 List.of(
@@ -181,14 +202,14 @@ public final class ParserTest {
                                 ),
                                 "consumer"
                         )
-                )
+                ),
+                List.of()
         );
+        final SourcesContent content = content(Path.of("parser/type/WildcardExample.java"));
         assertEquals(
                 new TypeDeclaration.ClassOrInterface(
                         Modifier.FINAL,
                         "WildcardExample",
-                        null,
-                        List.of(),
                         List.of(),
                         List.of(apply)
                 ),

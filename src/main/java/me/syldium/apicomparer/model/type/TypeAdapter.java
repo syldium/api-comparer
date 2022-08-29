@@ -27,6 +27,7 @@ public final class TypeAdapter {
         return new TypeDeclaration.ClassOrInterface(
                 declaration.getModifiers(),
                 declaration.getName().getFullyQualifiedName(),
+                typeParameters(declaration.typeParameters()),
                 declaration.getSuperclassType() == null ? null : javaType(declaration.getSuperclassType()),
                 javaTypes(declaration.superInterfaceTypes()),
                 fields(declaration.getFields()),
@@ -57,6 +58,7 @@ public final class TypeAdapter {
         return new TypeDeclaration.Record(
                 declaration.getModifiers(),
                 declaration.getName().getFullyQualifiedName(),
+                typeParameters(declaration.typeParameters()),
                 variables(declaration.recordComponents()),
                 javaTypes(declaration.superInterfaceTypes()),
                 fields(declaration.getFields()),
@@ -82,9 +84,11 @@ public final class TypeAdapter {
         final Type returnType = method.getReturnType2();
         return new MethodSignature(
                 method.getModifiers(),
+                typeParameters(method.typeParameters()),
                 returnType == null ? null : javaType(returnType),
                 method.getName().getIdentifier(),
-                variables(method.parameters())
+                variables(method.parameters()),
+                javaTypes(method.thrownExceptionTypes())
         );
     }
 
@@ -156,5 +160,13 @@ public final class TypeAdapter {
             return JavaType.Primitive.VOID;
         }
         throw new IllegalArgumentException(primitive.toString());
+    }
+
+    public static @NotNull TypeParameter typeParameter(@NotNull org.eclipse.jdt.core.dom.TypeParameter type) {
+        return new TypeParameter(type.getName().getIdentifier(), javaTypes(type.typeBounds()));
+    }
+
+    public static @NotNull List<TypeParameter> typeParameters(@NotNull List<org.eclipse.jdt.core.dom.TypeParameter> types) {
+        return types.stream().map(TypeAdapter::typeParameter).toList();
     }
 }
